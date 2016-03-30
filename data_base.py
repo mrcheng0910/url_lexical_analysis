@@ -1,9 +1,8 @@
 #!/usr/bin/python
-#encoding: utf-8
+# encoding: utf-8
 
 import MySQLdb
 import time
-import sys
 
 
 DBCONFIG = {'host':'172.26.253.3',
@@ -135,7 +134,7 @@ class MySQL(object):
         except:
             pass
 
-    def  close(self):
+    def close(self):
         """关闭数据库连接"""
         self.__del__()
 

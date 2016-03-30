@@ -30,7 +30,7 @@ def fetch_urls():
     To fetch urls from the database, and return urls
     """
     db = MySQL()
-    sql = 'SELECT url FROM url_features LIMIT 20'
+    sql = 'SELECT url FROM url_features WHERE malicious="0"'
     db.query(sql)
     urls = db.fetchAllRows()
     return tuple_to_list(urls)
@@ -49,6 +49,7 @@ def update_url_features(url_feature):
            url_feature[7],url_feature[8],url_feature[0])
     db.update(sql)
     # print sql
+
 
 def erase_scheme(url):
     """
@@ -131,13 +132,13 @@ def character_frequencies(input_str, total_length):
 
     for char in input_str:
         ascii_value = ord(char)
-        if (ascii_value >= 97 and ascii_value <= 122):  # To find occurrences of [a-z]
+        if 97 <= ascii_value <= 122:  # To find occurrences of [a-z]
             char_freq[ascii_value - 97] += 1
-        elif (ascii_value >= 65 and ascii_value <= 90):  # To find occurrences of [A-Z]
+        elif 65 <= ascii_value <= 90:  # To find occurrences of [A-Z]
             char_freq[ascii_value - 65] += 1
-        elif (ascii_value >= 48 and ascii_value <= 57):
+        elif 48 <= ascii_value <= 57:
             digit_count += 1
-        elif (char in "!@#$%^&*()-_=+{}[]|\':;><,?"):  # To find occurrences of special characters
+        elif char in "!@#$%^&*()-_=+{}[]|\':;><,?":  # To find occurrences of special characters
             special_char_count += 1
 
     char_freq.insert(0, digit_count)
@@ -211,6 +212,7 @@ def main():
         results.append(analysis_url(i))
 
     for i in results:
+        print i
         update_url_features(i)
     # print results
 if __name__ == '__main__':

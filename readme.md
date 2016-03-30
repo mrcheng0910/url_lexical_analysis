@@ -1,6 +1,9 @@
 # 恶意域名词汇特征挖掘分析系统
 基于恶意域名词汇特征分析出规律，然后进行计算，建立挖掘模型
 
+## 安装库
+1. python-tk
+2. matplotlib
 ## 词汇特征
 1. url_length: url的长度
 2. domain_tokens:
