@@ -30,15 +30,28 @@ def create_data_set(urls):
     :return: 数据集合
     """
     data_set = []
-    for url in urls:
-        domain_token = []
-        domain_token.append(url[0])
-        domain_token.extend(list(eval(url[1])))
-        domain_token.append(url[2])
-        data_set.append(domain_token)
+    # for url in urls:
+    #     domain_token = []
+    #     domain_token.append(url[0])
+    #     domain_token.extend(list(eval(url[1])))
+    #     domain_token.append(url[2])
+    #     data_set.append(domain_token)
+    #
+    # labels = ['url_length','token_count','total_length','avg_length','max_length']  # 特征标签
 
-    labels = ['url_length','token_count','total_length','avg_length','max_length']  # 特征标签
+    file_name = open('testa.txt')
+    lines = file_name.readlines()
+    for i in lines:
+        token = []
+        urls = i.strip().split(',')
+        token.append(float(urls[0]))
+        token.append(float(urls[1]))
+        token.append(float(urls[2]))
+        token.append(float(urls[3]))
+        token.append(urls[4])
+        data_set.append(token)
 
+    labels = ['a','b','c','d']
 
     return data_set, labels
 
@@ -74,7 +87,8 @@ def find_split_points(values):
     split_points = []
     sorted_values = sorted(values)
     for i in range(0,len(sorted_values)-1):
-        split_points.append((int(sorted_values[i])+int(sorted_values[i+1]))/2)
+        # split_points.append((int(sorted_values[i])+int(sorted_values[i+1]))/2)
+        split_points.append((float(sorted_values[i])+float(sorted_values[i+1]))/2)
 
     return split_points
 
@@ -199,6 +213,7 @@ def create_tree(data_set, labels):
     :return:
     """
     class_list = [example[-1] for example in data_set]  # 获得所有类别值
+
     if class_list.count(class_list[0]) == len(class_list):  # 如果所有类别值相同，则停止递归，返回结果
         return class_list[0]
 
@@ -212,7 +227,7 @@ def create_tree(data_set, labels):
 
     new_data_set = []
     for i in data_set:
-        if i[best_feat]<=split_point:
+        if i[best_feat] <= split_point:
             i[best_feat]='<='+str(split_point)
             new_data_set.append(i)
         else:
@@ -229,9 +244,58 @@ def create_tree(data_set, labels):
     return my_tree
 
 
+def classify(input_tree, feat_labels, test_vec):
+    """
+    分类，测试数据
+    :param input_tree:
+    :param feat_labels:
+    :param test_vec:
+    :return:
+    """
+    first_str = input_tree.keys()[0]
+    second_dict = input_tree[first_str]
+    feat_index = feat_labels.index(first_str)
+    for key in second_dict.keys():
+        if type(second_dict[key]).__name__=='dict':
+            classLabel = classify(second_dict[key],feat_labels,test_vec)
+        else:
+            classLabel = second_dict[key]
+    return classLabel
+
+
+def input():
+
+    data_set = []
+    file_name = open('testb.txt')
+    lines = file_name.readlines()
+    for i in lines:
+        token = []
+        urls = i.strip().split(',')
+        token.append(float(urls[0]))
+        token.append(float(urls[1]))
+        token.append(float(urls[2]))
+        token.append(float(urls[3]))
+        token.append(urls[4])
+        # print token
+        data_set.append(token)
+
+    labels = ['a','b','c','d']
+    return data_set,labels
+
+
 if __name__ == '__main__':
 
     urls = fetch_data()
     data_set,labels = create_data_set(urls)
-    print create_tree(data_set,labels)
+    # print data_set
+    mytree = create_tree(data_set,labels)
+    print mytree
+    data_seta,labels = input()
+    count = 0
+    # for i in data_seta:
+        # print count
+        # print i[4]
+        # print classify(mytree,labels,i)
+        # count += 1
+
 
