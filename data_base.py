@@ -51,6 +51,13 @@ class MySQL(object):
         self._cur = self._conn.cursor()
         self._instance = MySQLdb
 
+    def get_conn(self):
+        """
+        得到conn
+        :return:
+        """
+        return self._conn
+
     def query(self,sql):
         """执行 SELECT 语句"""
         try:
