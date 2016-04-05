@@ -115,7 +115,7 @@ class MySQL(object):
             result = False
         return result
 
-    def fetchAllRows(self):
+    def fetch_all_rows(self):
         """返回结果列表
         :rtype: object
         """
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     db = MySQL()
     sql = 'select * from url_features limit 10'
     db.query(sql)
-    results = db.fetchAllRows()
+    results = db.fetch_all_rows()
 
     for result in results:
         print result

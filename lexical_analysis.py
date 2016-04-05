@@ -32,7 +32,7 @@ def fetch_urls():
     db = MySQL()
     sql = 'SELECT url FROM url_features WHERE malicious="0"'
     db.query(sql)
-    urls = db.fetchAllRows()
+    urls = db.fetch_all_rows()
     return tuple_to_list(urls)
 
 
