@@ -2,12 +2,15 @@
 # encoding:utf-8
 
 """
-分析通过决策树的效果特征
+分析通过决策树的效果特征（15个特征）
 """
 from data_base import MySQL
 import numpy as np
-import pandas as pd
 from pandas import Series,DataFrame
+from sklearn import tree
+from sklearn import metrics
+from sklearn import cross_validation
+
 
 def fetch_data():
     """
@@ -15,7 +18,7 @@ def fetch_data():
     :return: 返回基础数据
     """
     db = MySQL()
-    sql = 'SELECT url_length,path_tokens,path_brand,domain_tokens,malicious FROM url_features'
+    sql = 'SELECT url_length,path_tokens,path_brand,domain_tokens,malicious,domain_characters,path_characters FROM url_features'
     db.query(sql)
     urls = db.fetch_all_rows()
     db.close()
@@ -29,6 +32,7 @@ def create_data_set():
     """
     urls = fetch_data()  # url基础数据
 
+    # url 信息
     url_length = []  # url的长度
 
     # url的path中相关信息
@@ -37,30 +41,41 @@ def create_data_set():
     path_avg_length = []  # path的平均长度
     path_max_length = []  # path的最大长度
     path_brand = []  # path中是否有品牌名称
+    path_digit = []  # path中数字的个数
+    path_alapha = []  # path中字母的个数
+    path_special_character = []  # path中特殊字符的个数
 
     # url的domain中相关信息
     domain_count = []  # domain中token数量
     domain_total_length = []  # domain的总长度
     domain_avg_length = []  # domain的平均长度
     domain_max_length = []  # domain的最大长度
-
+    domain_digit = []  # domain中含有数字个数
+    domain_alapha = []  # domain中字母的个数
+    domain_special_character = []  # domain中特殊字符的个数
     malicious = []  # 是否为恶意域名
 
     for url in urls:
         url_length.append(url[0])
-        # path信息
+        # path长度信息
         path_count.append(list(eval(url[1]))[0])
         path_total_length.append(list(eval(url[1]))[1])
         path_avg_length.append(list(eval(url[1]))[2])
         path_max_length.append(list(eval(url[1]))[3])
         path_brand.append(url[2])
-        # domain信息
+        # domain长度信息
         domain_count.append(list(eval(url[3]))[0])
         domain_total_length.append(list(eval(url[3]))[1])
         domain_avg_length.append(list(eval(url[3]))[2])
         domain_max_length.append(list(eval(url[3]))[3])
         # domain的字符信息
-
+        domain_digit.append(list(eval(url[5]))[0])
+        domain_special_character.append(list(eval(url[5]))[1])
+        domain_alapha.append(sum(list(eval(url[5]))[2:]))
+        # path的字符信息
+        path_digit.append(list(eval(url[6]))[0])
+        path_special_character.append(list(eval(url[6]))[1])
+        path_alapha.append(sum(list(eval(url[6]))[2:]))
         # 结果信息
         malicious.append(int(url[4]))
 
@@ -75,7 +90,13 @@ def create_data_set():
         'domain_total_length': np.array(domain_total_length),
         'domain_avg_length': np.array(domain_avg_length),
         'domain_max_length': np.array(domain_max_length),
-        'malicious': np.array(malicious)
+        'malicious': np.array(malicious),
+        'domain_digit': np.array(domain_digit),
+        'domain_special_character': np.array(domain_special_character),
+        # 'domain_alapha': np.array(domain_alapha),
+        'path_digit': np.array(path_digit),
+        'path_special_character': np.array(path_special_character),
+        # 'path_alapha': np.array(path_alapha),
 
     }
 
@@ -113,13 +134,64 @@ def cal_decision_tree(x_train,y_train,x_test,y_test):
     :param y_train: 训练结果值
     :param x_test: 测试特征值
     :param y_test: 测试结果值
+    :return:正确率，重要程度
+    """
+
+    clf = tree.DecisionTreeClassifier(criterion='entropy', max_depth=5,min_samples_leaf=7)
+    # clf = tree.DecisionTreeClassifier(criterion='entropy')
+    clf = clf.fit(x_train,y_train)
+    return "{:.4f}".format(clf.score(x_test,y_test)),clf.feature_importances_,clf
+
+
+def measure_performance(X,y,clf, show_accuracy=True,
+                        show_classification_report=True,
+                        show_confusion_matrix=True):
+    """
+    多指标来评估模型
+    :param X: 测试集
+    :param y: 真实结果
+    :param clf: 模型
+    :param show_accuracy: 显示正确率
+    :param show_classification_report: 显示分类报告
+    :param show_confusion_matrix:
     :return:
     """
-    from sklearn import tree
-    # clf = tree.DecisionTreeClassifier(criterion='entropy', max_depth=5,min_samples_leaf=5)
-    clf = tree.DecisionTreeClassifier(criterion='entropy')
-    clf = clf.fit(x_train,y_train)
-    return "{:.2f}".format(clf.score(x_test,y_test)),clf.feature_importances_
+    y_pred=clf.predict(X)
+    if show_accuracy:
+        print "Accuracy:{0:.4f}".format(metrics.accuracy_score(y,y_pred)),"\n"
+
+    if show_classification_report:
+        print "模型分类报告："
+        print metrics.classification_report(y,y_pred,labels=[0,1],target_names=['良性网址','恶意网址']),"\n"
+
+    if show_confusion_matrix:
+        print "混淆矩阵报告："
+        print metrics.confusion_matrix(y,y_pred),"\n"
+
+def cross_validation_model(clf,df,y,cv=10):
+    """
+    交叉验证模型
+    :param clf: 模型
+    :param df: 数据
+    :param y: 结果数据
+    :param cv: 交叉验证次数
+    :return: 验证分数列表，平均值，标准差
+    """
+    scores = cross_validation.cross_val_score(clf, df, y, cv=10)
+    return  scores,scores.mean(),scores.std()
+
+
+def draw_tree(clf,sub_columns):
+    print "绘制图"
+    import pydot,StringIO
+    dot_data = StringIO.StringIO()
+    tree.export_graphviz(clf, out_file=dot_data, feature_names=sub_columns)
+    dot_data.getvalue()
+    pydot.graph_from_dot_data(dot_data.getvalue())
+    graph = pydot.graph_from_dot_data(dot_data.getvalue())
+    graph.write_png('titanic.png')
+    # from IPython.core.display import Image
+    # Image(filename='titanic.png')
 
 
 
@@ -128,30 +200,24 @@ def main():
     source_df = create_data_set()
     df,y,sub_columns = extract_key_feature_data(source_df)
     x_train,x_test,y_train,y_test = train_test_split_data(df,y)
-    accuracy,feature_importance = cal_decision_tree(x_train,y_train,x_test,y_test)
+    accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
     print "正确率：",accuracy
     print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
+    measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
+    scores,scores_mean,scores_std = cross_validation_model(clf,df,y,cv=10)
+    print "验证结果分数列表", scores
+    print "平均值：", scores_mean
+    print "标准偏差估计分数：", scores_std
+    # draw_tree(clf,sub_columns)
+
+    from sklearn.ensemble import RandomForestClassifier
+    clf2 = RandomForestClassifier(n_estimators=1000,random_state=33)
+    clf2 = clf2.fit(x_train,y_train)
+    scores2 = cross_validation.cross_val_score(clf2,df, y, cv=5)
+    print scores2.mean()
+    print clf2.feature_importances_
 
 
 if __name__ == '__main__':
     main()
 
-# from sklearn import metrics
-#
-#
-# def measure_performance(X,y,clf, show_accuracy=True,
-#                         show_classification_report=True,
-#                         show_confusion_matrix=True):
-#     y_pred=clf.predict(X)
-#     if show_accuracy:
-#         print "Accuracy:{0:.3f}".format(metrics.accuracy_score(y,y_pred)),"\n"
-#
-#     if show_classification_report:
-#         print "Classification report"
-#         print metrics.classification_report(y,y_pred),"\n"
-#
-#     if show_confusion_matrix:
-#         print "Confusion matrix"
-#         print metrics.confusion_matrix(y,y_pred),"\n"
-#
-# measure_performance(X_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
