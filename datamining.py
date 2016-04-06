@@ -2,14 +2,17 @@
 # encoding:utf-8
 
 """
-分析通过决策树的效果特征（15个特征）
+使用多种分类算法对恶意域名分类效果进行统计分析
+使用恶意域名的15个特征
 """
 from data_base import MySQL
 import numpy as np
-from pandas import Series,DataFrame
-from sklearn import tree
+from pandas import DataFrame
 from sklearn import metrics
 from sklearn import cross_validation
+from sklearn import tree  # 决策树
+from sklearn.svm import SVC  # SVC支持向量机
+from sklearn.neighbors import KNeighborsClassifier  # K近邻算法
 
 
 def fetch_data():
@@ -78,24 +81,25 @@ def create_data_set():
         path_alapha.append(sum(list(eval(url[6]))[2:]))
         # 结果信息
         malicious.append(int(url[4]))
+        # malicious.append(str(url[4]))
 
     data_set = {
-        'url_length': np.array(url_length),
-        'path_count': np.array(path_count),
-        'path_avg_length': np.array(path_avg_length),
-        'path_total_length': np.array(path_total_length),
-        'path_max_length': np.array(path_max_length),
-        'path_brand': np.array(path_brand),
-        'domain_count': np.array(domain_count),
-        'domain_total_length': np.array(domain_total_length),
-        'domain_avg_length': np.array(domain_avg_length),
-        'domain_max_length': np.array(domain_max_length),
+        'url_length': np.array(url_length).astype(float),
+        'path_count': np.array(path_count).astype(float),
+        'path_avg_length': np.array(path_avg_length).astype(float),
+        'path_total_length': np.array(path_total_length).astype(float),
+        'path_max_length': np.array(path_max_length).astype(float),
+        'path_brand': np.array(path_brand).astype(float),
+        'domain_count': np.array(domain_count).astype(float),
+        'domain_total_length': np.array(domain_total_length).astype(float),
+        'domain_avg_length': np.array(domain_avg_length).astype(float),
+        'domain_max_length': np.array(domain_max_length).astype(float),
         'malicious': np.array(malicious),
-        'domain_digit': np.array(domain_digit),
-        'domain_special_character': np.array(domain_special_character),
+        'domain_digit': np.array(domain_digit).astype(float),
+        'domain_special_character': np.array(domain_special_character).astype(float),
         # 'domain_alapha': np.array(domain_alapha),
-        'path_digit': np.array(path_digit),
-        'path_special_character': np.array(path_special_character),
+        'path_digit': np.array(path_digit).astype(float),
+        'path_special_character': np.array(path_special_character).astype(float),
         # 'path_alapha': np.array(path_alapha),
 
     }
@@ -140,7 +144,86 @@ def cal_decision_tree(x_train,y_train,x_test,y_test):
     clf = tree.DecisionTreeClassifier(criterion='entropy', max_depth=5,min_samples_leaf=7)
     # clf = tree.DecisionTreeClassifier(criterion='entropy')
     clf = clf.fit(x_train,y_train)
-    return "{:.4f}".format(clf.score(x_test,y_test)),clf.feature_importances_,clf
+    return "{:.4f}".format(clf.score(x_test,y_test)), clf.feature_importances_,clf
+
+
+def logistic_data(X,y):
+    """
+    逻辑回归算法
+    :param X:
+    :param y:
+    :return:
+    """
+    from sklearn import metrics
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression()
+    model.fit(X, y)
+    score = model.score(X,y)
+    print score
+    expected = y
+    predicted = model.predict(X)
+    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    print(metrics.confusion_matrix(expected, predicted))
+
+
+def svm_data(X,y):
+    """
+    使用支持向量机分析数据
+    :param X: 训练数据集
+    :param y: 结果数据集
+    """
+
+    # fit a SVM model to the data
+    model = SVC()
+    model.fit(X, y)
+    score = model.score(X,y)
+    expected = y
+    predicted = model.predict(X)
+    print score
+    print metrics.classification_report(expected, predicted, labels=[0,1],target_names=['良性网址','恶意网址'])
+    print metrics.confusion_matrix(expected, predicted)
+
+
+def k_neighbor_data(X,y):
+    """
+    k邻接算法
+    :param X:
+    :param y:
+    :return:
+    """
+    # fit a k-nearest neighbor model to the data
+    model = KNeighborsClassifier()
+    model.fit(X, y)
+    score = model.score(X,y)
+    print score
+    # make predictions
+    expected = y
+    predicted = model.predict(X)
+    # summarize the fit of the model
+    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    print(metrics.confusion_matrix(expected, predicted))
+
+
+def gausssian_data(X,y):
+    """
+    朴素贝叶斯算法
+    :param X:
+    :param y:
+    :return:
+    """
+    from sklearn import metrics
+    from sklearn.naive_bayes import GaussianNB
+    model = GaussianNB()
+    model.fit(X, y)
+    score = model.score(X,y)
+    # make predictions
+    print score
+    expected = y
+    predicted = model.predict(X)
+    # summarize the fit of the model
+    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    print(metrics.confusion_matrix(expected, predicted))
+
 
 
 def measure_performance(X,y,clf, show_accuracy=True,
@@ -156,17 +239,18 @@ def measure_performance(X,y,clf, show_accuracy=True,
     :param show_confusion_matrix:
     :return:
     """
-    y_pred=clf.predict(X)
+    y_pred = clf.predict(X)
     if show_accuracy:
-        print "Accuracy:{0:.4f}".format(metrics.accuracy_score(y,y_pred)),"\n"
+        print "Accuracy:{0:.4f}".format(metrics.accuracy_score(y,y_pred)), "\n"
 
     if show_classification_report:
         print "模型分类报告："
-        print metrics.classification_report(y,y_pred,labels=[0,1],target_names=['良性网址','恶意网址']),"\n"
+        print metrics.classification_report(y,y_pred,labels=[0,1],target_names=['良性网址','恶意网址']), "\n"
 
     if show_confusion_matrix:
         print "混淆矩阵报告："
         print metrics.confusion_matrix(y,y_pred),"\n"
+
 
 def cross_validation_model(clf,df,y,cv=10):
     """
@@ -181,11 +265,14 @@ def cross_validation_model(clf,df,y,cv=10):
     return  scores,scores.mean(),scores.std()
 
 
+
+
+
 def draw_tree(clf,sub_columns):
     print "绘制图"
     import pydot,StringIO
     dot_data = StringIO.StringIO()
-    tree.export_graphviz(clf, out_file=dot_data, feature_names=sub_columns)
+    tree.export_graphviz(clf, out_file=dot_data,feature_names=sub_columns,max_depth=5)
     dot_data.getvalue()
     pydot.graph_from_dot_data(dot_data.getvalue())
     graph = pydot.graph_from_dot_data(dot_data.getvalue())
@@ -200,23 +287,28 @@ def main():
     source_df = create_data_set()
     df,y,sub_columns = extract_key_feature_data(source_df)
     x_train,x_test,y_train,y_test = train_test_split_data(df,y)
-    accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
-    print "正确率：",accuracy
-    print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
-    measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
-    scores,scores_mean,scores_std = cross_validation_model(clf,df,y,cv=10)
-    print "验证结果分数列表", scores
-    print "平均值：", scores_mean
-    print "标准偏差估计分数：", scores_std
+    # accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
+    # print "正确率：",accuracy
+    # print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
+    # measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
+    # scores,scores_mean,scores_std = cross_validation_model(clf,df,y,cv=10)
+    # print "验证结果分数列表", scores
+    # print "平均值：", scores_mean
+    # print "标准偏差估计分数：", scores_std
     # draw_tree(clf,sub_columns)
 
-    from sklearn.ensemble import RandomForestClassifier
-    clf2 = RandomForestClassifier(n_estimators=1000,random_state=33)
-    clf2 = clf2.fit(x_train,y_train)
-    scores2 = cross_validation.cross_val_score(clf2,df, y, cv=5)
-    print scores2.mean()
-    print clf2.feature_importances_
+    # from sklearn.ensemble import RandomForestClassifier
+    # clf2 = RandomForestClassifier(n_estimators=1000,random_state=33)
+    # clf2 = clf2.fit(x_train,y_train)
+    # scores2 = cross_validation.cross_val_score(clf2,df, y, cv=5)
+    # print scores2.mean()
+    # print clf2.feature_importances_
 
+    # guiyih(df,y)
+    svm_data(df,y)
+    k_neighbor_data(df,y)
+    gausssian_data(df,y)
+    logistic_data(df,y)
 
 if __name__ == '__main__':
     main()
