@@ -5,17 +5,21 @@
 作者：程亚楠
 创建时间：2016.4.6
 """
-
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from datamining import extract_key_feature_data
+from datamining import train_test_split_data
+from datamining import cal_decision_tree
+from datamining import svm_data
+from datamining import k_neighbor_data
+from datamining import gausssian_data
+from datamining import logistic_data
 
-rcParams['font.family'] = 'SimHei'
 
+rcParams['font.family'] = 'SimHei'  # 支持中文字体
 # 如果要保存为pdf格式，需要增加如下配置
 #rcParams["pdf.fonttype"] = 42
-
-
-
 
 
 def draw_comparing_graphy(x,dt,svm,logistic,kneighbors,gaussianNB):
@@ -36,38 +40,49 @@ def draw_comparing_graphy(x,dt,svm,logistic,kneighbors,gaussianNB):
     plt.xlabel(u'数据集网址数量(个)')
     plt.ylabel(u'预测正确率')
     plt.title(u'五种分类算法正确率比较')
-    plt.legend()
+    # plt.legend(loc='center right')
+    plt.legend(loc=(0.7,0.6))
     plt.show()
 
-def get_xyaxis_data():
+
+def get_xy_data():
     """
     获得测试数据个数(横坐标)和各个算法的正确率(纵坐标)
     :return: x和ys
     """
-    x = [200, 400, 800,1500,2000]
+    train_sizes = [0.6, 0.7, 0.8, 0.9, 0.97]
+    df,y,sub_columns = extract_key_feature_data()
+    x = []
+    dt = []
+    svm = []
+    logistic = []
+    kneighbors = []
+    gaussianNB = []
+    for train_size in train_sizes:
+        x_train,x_test,y_train,y_test = train_test_split_data(df, y, train_size=train_size)
+        x.append(len(x_train))
+        dt_score,_,_ = cal_decision_tree(x_train,y_train,x_test,y_test)
+        svm_score = svm_data(x_train,y_train)
+        k_score = k_neighbor_data(x_train,y_train)
+        g_score = gausssian_data(x_train,y_train)
+        l_score = logistic_data(x_train,y_train)
 
-    dt = [0.92,0.93,0.94]
-    svm = [0.83,0.84,0.87]
-    logistic = [0.82,0.83,0.94]
-    kneighbors = [0.72,0.75,0.76]
-    gaussianNB = [0.6,0.65,0.65]
-    return x, dt,svm,logistic,kneighbors,gaussianNB
+        dt.append(dt_score)
+        svm.append(svm_score)
+        logistic.append(l_score)
+        kneighbors.append(k_score)
+        gaussianNB.append(g_score)
 
-
-def get_dt_yaxis():
-    """
-    获取决策树算法的准确率
-    :return:
-    """
-    print "nihao"
+    return np.array(x), np.array(dt), np.array(svm), np.array(logistic), np.array(kneighbors), np.array(gaussianNB)
 
 
 def main():
     """
     主函数
     """
-    x, dt,svm,logistic,kneighbors,gaussianNB = get_xyaxis_data()
+    x, dt, svm, logistic, kneighbors, gaussianNB = get_xy_data()
     draw_comparing_graphy(x, dt,svm,logistic,kneighbors,gaussianNB)
+
 
 if __name__ == '__main__':
     main()

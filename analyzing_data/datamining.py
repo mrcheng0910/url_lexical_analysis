@@ -7,7 +7,7 @@
 """
 from data_base import MySQL
 import numpy as np
-from pandas import DataFrame
+from pandas import DataFrame,Series
 from sklearn import metrics
 from sklearn import cross_validation
 from sklearn import tree  # 决策树
@@ -108,18 +108,19 @@ def create_data_set():
 
     return source_df
 
-def extract_key_feature_data(source_df):
+def extract_key_feature_data():
     """
     从数据集中提取出所有关键特征
     :param source_df: DataFrame 原始数据
     :return:
     """
+    source_df = create_data_set()
     sub_columns = source_df.columns.difference(['malicious']) # 求得所有关键特征
     df = source_df[sub_columns]
     y = source_df['malicious']
     return df,y,sub_columns
 
-def train_test_split_data(df,y):
+def train_test_split_data(df,y,train_size=0.80):
     """
     训练集和测试集分离
     :param df: 原始数据集
@@ -127,7 +128,7 @@ def train_test_split_data(df,y):
     :return: 训练数据集，测试数据集，训练结果数据集，测试结果数据集
     """
     from sklearn.cross_validation import train_test_split
-    x_train,x_test,y_train,y_test = train_test_split(df,y,test_size=0.25,random_state=33)
+    x_train,x_test,y_train,y_test = train_test_split(df,y,train_size=train_size,random_state=33)
     return x_train,x_test,y_train,y_test
 
 
@@ -164,6 +165,28 @@ def logistic_data(X,y):
     predicted = model.predict(X)
     print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
     print(metrics.confusion_matrix(expected, predicted))
+    return score
+
+def test():
+    """
+    逻辑回归算法
+    :param X:
+    :param y:
+    :return:
+    """
+    from sklearn import metrics
+    from sklearn.linear_model import LogisticRegression
+    X,y,sub_columns = extract_key_feature_data()
+    model = LogisticRegression()
+    model.fit(X, y)
+    score = model.score(X,y)
+    print score
+    expected = y
+    predicted = model.predict(X)
+    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    return metrics.confusion_matrix(expected, predicted)
+    # return score
+
 
 
 def svm_data(X,y):
@@ -182,6 +205,7 @@ def svm_data(X,y):
     print score
     print metrics.classification_report(expected, predicted, labels=[0,1],target_names=['良性网址','恶意网址'])
     print metrics.confusion_matrix(expected, predicted)
+    return score
 
 
 def k_neighbor_data(X,y):
@@ -202,6 +226,7 @@ def k_neighbor_data(X,y):
     # summarize the fit of the model
     print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
     print(metrics.confusion_matrix(expected, predicted))
+    return score
 
 
 def gausssian_data(X,y):
@@ -223,6 +248,7 @@ def gausssian_data(X,y):
     # summarize the fit of the model
     print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
     print(metrics.confusion_matrix(expected, predicted))
+    return score
 
 
 
@@ -284,13 +310,14 @@ def draw_tree(clf,sub_columns):
 
 
 def main():
-    source_df = create_data_set()
-    df,y,sub_columns = extract_key_feature_data(source_df)
-    x_train,x_test,y_train,y_test = train_test_split_data(df,y)
-    # accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
-    # print "正确率：",accuracy
-    # print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
-    # measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
+
+    df,y,sub_columns = extract_key_feature_data()
+    x_train,x_test,y_train,y_test = train_test_split_data(df,y,train_size=0.90)
+    print len(x_train)
+    accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
+    print "正确率：",accuracy
+    print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
+    measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
     # scores,scores_mean,scores_std = cross_validation_model(clf,df,y,cv=10)
     # print "验证结果分数列表", scores
     # print "平均值：", scores_mean
