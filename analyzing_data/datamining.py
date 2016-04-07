@@ -159,34 +159,12 @@ def logistic_data(X,y):
     from sklearn.linear_model import LogisticRegression
     model = LogisticRegression()
     model.fit(X, y)
-    score = model.score(X,y)
-    print score
     expected = y
     predicted = model.predict(X)
-    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
-    print(metrics.confusion_matrix(expected, predicted))
-    return score
-
-def test():
-    """
-    逻辑回归算法
-    :param X:
-    :param y:
-    :return:
-    """
-    from sklearn import metrics
-    from sklearn.linear_model import LogisticRegression
-    X,y,sub_columns = extract_key_feature_data()
-    model = LogisticRegression()
-    model.fit(X, y)
     score = model.score(X,y)
-    print score
-    expected = y
-    predicted = model.predict(X)
-    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
-    return metrics.confusion_matrix(expected, predicted)
-    # return score
-
+    cm = metrics.confusion_matrix(expected, predicted)
+    # print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    return score, cm
 
 
 def svm_data(X,y):
@@ -199,13 +177,12 @@ def svm_data(X,y):
     # fit a SVM model to the data
     model = SVC()
     model.fit(X, y)
-    score = model.score(X,y)
     expected = y
     predicted = model.predict(X)
-    print score
-    print metrics.classification_report(expected, predicted, labels=[0,1],target_names=['良性网址','恶意网址'])
-    print metrics.confusion_matrix(expected, predicted)
-    return score
+    score = model.score(X,y)
+    cm = metrics.confusion_matrix(expected, predicted)
+    # print metrics.classification_report(expected, predicted, labels=[0,1],target_names=['良性网址','恶意网址'])
+    return score, cm
 
 
 def k_neighbor_data(X,y):
@@ -218,15 +195,12 @@ def k_neighbor_data(X,y):
     # fit a k-nearest neighbor model to the data
     model = KNeighborsClassifier()
     model.fit(X, y)
-    score = model.score(X,y)
-    print score
-    # make predictions
     expected = y
     predicted = model.predict(X)
-    # summarize the fit of the model
-    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
-    print(metrics.confusion_matrix(expected, predicted))
-    return score
+    score = model.score(X,y)
+    # print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    cm = metrics.confusion_matrix(expected, predicted)
+    return score,cm
 
 
 def gausssian_data(X,y):
@@ -240,15 +214,12 @@ def gausssian_data(X,y):
     from sklearn.naive_bayes import GaussianNB
     model = GaussianNB()
     model.fit(X, y)
-    score = model.score(X,y)
-    # make predictions
-    print score
     expected = y
     predicted = model.predict(X)
-    # summarize the fit of the model
-    print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
-    print(metrics.confusion_matrix(expected, predicted))
-    return score
+    score = model.score(X,y)
+    # print(metrics.classification_report(expected, predicted,labels=[0,1],target_names=['良性网址','恶意网址']))
+    cm = metrics.confusion_matrix(expected, predicted)
+    return score, cm
 
 
 

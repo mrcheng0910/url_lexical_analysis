@@ -32,11 +32,11 @@ def draw_comparing_graphy(x,dt,svm,logistic,kneighbors,gaussianNB):
     :param kneighbors: k临接算法
     :param gaussianNB: 朴素贝叶斯算法
     """
-    plt.plot(x, dt, label='DT', color='r', linewidth=2)
-    plt.plot(x, svm, label='SVM', color='b', linewidth=2)
-    plt.plot(x, logistic, label='Logistic', color='k', linewidth=2)
-    plt.plot(x, kneighbors, label='KNeighbors', color='c', linewidth=2)
-    plt.plot(x, gaussianNB, label='GaussianNB', color='m', linewidth=2)
+    plt.plot(x, dt, 'ko-',label='DT', color='r', linewidth=2)
+    plt.plot(x, svm,'*-', label='SVM', color='b', linewidth=2)
+    plt.plot(x, logistic,'>-',label='Logistic', color='k', linewidth=2)
+    plt.plot(x, kneighbors,'v-', label='KNeighbors', color='c', linewidth=2)
+    plt.plot(x, gaussianNB, 'd-',label='GaussianNB', color='m', linewidth=2)
     plt.xlabel(u'数据集网址数量(个)')
     plt.ylabel(u'预测正确率')
     plt.title(u'五种分类算法正确率比较')
@@ -61,11 +61,11 @@ def get_xy_data():
     for train_size in train_sizes:
         x_train,x_test,y_train,y_test = train_test_split_data(df, y, train_size=train_size)
         x.append(len(x_train))
-        dt_score,_,_ = cal_decision_tree(x_train,y_train,x_test,y_test)
-        svm_score = svm_data(x_train,y_train)
-        k_score = k_neighbor_data(x_train,y_train)
-        g_score = gausssian_data(x_train,y_train)
-        l_score = logistic_data(x_train,y_train)
+        dt_score, _, _ = cal_decision_tree(x_train,y_train,x_test,y_test)
+        svm_score, _ = svm_data(x_train,y_train)
+        k_score, _ = k_neighbor_data(x_train,y_train)
+        g_score,_ = gausssian_data(x_train,y_train)
+        l_score,_ = logistic_data(x_train,y_train)
 
         dt.append(dt_score)
         svm.append(svm_score)
