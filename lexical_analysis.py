@@ -2,7 +2,7 @@
 # encoding:utf-8
 
 """
-
+提取网址的词汇特征
 """
 
 from data_base import MySQL
@@ -10,14 +10,14 @@ from data_base import MySQL
 
 def tuple_to_list(urls):
     """
-    to format the type of tuple to list
+    将元组格式的网址转换为列表格式
     """
     return [url[0] for url in urls]
 
 
 def fetch_brands():
     """
-    to fetch the brands list
+    获取常用品牌名称
     """
     f = open("brands.txt")
     brands = f.readlines()
@@ -27,12 +27,13 @@ def fetch_brands():
 
 def fetch_urls():
     """
-    To fetch urls from the database, and return urls
+    获取要提取词汇特征的网址
     """
     db = MySQL()
-    sql = 'SELECT url FROM url_features WHERE malicious="0"'
+    sql = 'SELECT url FROM url_features'
     db.query(sql)
     urls = db.fetch_all_rows()
+    db.close()
     return tuple_to_list(urls)
 
 
@@ -129,7 +130,8 @@ def character_frequencies(input_str, total_length):
     char_freq.extend([0] * 26)  # init 0
     digit_count = 0
     special_char_count = 0
-
+    if total_length==0:
+        return char_freq
     for char in input_str:
         ascii_value = ord(char)
         if 97 <= ascii_value <= 122:  # To find occurrences of [a-z]
@@ -143,6 +145,8 @@ def character_frequencies(input_str, total_length):
 
     char_freq.insert(0, digit_count)
     char_freq.insert(0, special_char_count)
+    # print input_str
+    # print total_length
     for i in range(0, len(char_freq)):
         char_freq[i] = char_freq[i] * 100 / total_length
 

@@ -146,12 +146,12 @@ class MySQL(object):
         self.__del__()
 
 
-if __name__ == '__main__':
-
-    db = MySQL()
-    sql = 'select * from url_features limit 10'
-    db.query(sql)
-    results = db.fetch_all_rows()
-
-    for result in results:
-        print result
+# if __name__ == '__main__':
+#
+#     db = MySQL()
+#     sql = 'select * from url_features limit 10'
+#     db.query(sql)
+#     results = db.fetch_all_rows()
+#
+#     for result in results:
+#         print result
