@@ -80,6 +80,17 @@ class MySQL(object):
             print "数据库错误代码:",e.args[0],e.args[1]
             result = False
         return result
+    def no_update(self,sql):
+        """执行 UPDATE 及 DELETE 语句"""
+        try:
+            self._cur.execute("SET NAMES utf8")
+            result = self._cur.execute(sql)
+            # self._conn.commit()
+        except MySQLdb.Error, e:
+            self.error_code = e.args[0]
+            print "数据库错误代码:",e.args[0],e.args[1]
+            result = False
+        return result
 
     def insert(self,sql):
         """执行 INSERT 语句。如主键为自增长int，则返回新生成的ID"""

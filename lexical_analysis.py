@@ -49,6 +49,7 @@ def update_url_features(url_feature):
           (url_feature[1],url_feature[2],url_feature[3],url_feature[4],url_feature[5],url_feature[6],
            url_feature[7],url_feature[8],url_feature[0])
     db.update(sql)
+    db.close()
     # print sql
 
 
@@ -205,6 +206,19 @@ def analysis_url(url):
     return result_url
 
 
+def test(results):
+    db = MySQL()
+    for url_feature in results:
+        print url_feature
+        sql = 'UPDATE url_features SET url_length = "%s", domain="%s",domain_tokens="%s",domain_characters="%s",path="%s", ' \
+          'path_tokens="%s",path_characters="%s",path_brand="%s" WHERE url="%s"' % \
+          (url_feature[1],url_feature[2],url_feature[3],url_feature[4],url_feature[5],url_feature[6],
+           url_feature[7],url_feature[8],url_feature[0])
+        db.no_update(sql)
+
+    db.commit()
+    db.close()
+
 def main():
     """
     主函数
@@ -215,9 +229,10 @@ def main():
     for i in urls:
         results.append(analysis_url(i))
 
-    for i in results:
-        print i
-        update_url_features(i)
+    test(results)
+    # for i in results:
+    #     print i
+    #     update_url_features(i)
     # print results
 if __name__ == '__main__':
     # analysis_url('http://wwW.baid-u.com/baid')
