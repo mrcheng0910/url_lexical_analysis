@@ -9,7 +9,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-from datamining import extract_key_feature_data, train_test_split_data, svm_data, k_neighbor_data, gausssian_data
+from datamining import extract_key_feature_data, train_test_split_data, svm_data, k_neighbor_data, gausssian_data,test
 from datamining import logistic_data
 
 rcParams['font.family'] = 'SimHei'  # 支持中文字体
@@ -23,14 +23,14 @@ def plot_confusion_matrix(cm,title=u'SVM分类恶意域名混淆矩阵图', cmap
     :param cmap:
     """
     im = plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
+    # plt.title(title)
     plt.colorbar(im)
     tick_marks = np.arange(2)
-    plt.xticks(tick_marks, [u'恶意网址',u'良性网址'])
-    plt.yticks(tick_marks, [u'恶意网址',u'良性网址'], rotation=90)
+    plt.xticks(tick_marks, [u'恶意',u'良性'],fontsize=15)
+    plt.yticks(tick_marks, [u'恶意',u'良性'], fontsize=15,rotation=90)
     # plt.tight_layout()
-    plt.ylabel(u'真实结果')
-    plt.xlabel(u'预测结果')
+    plt.ylabel(u'真实分类',fontsize=15)
+    plt.xlabel(u'预测分类',fontsize=15)
     # 设置数据标签
     if normalized:  # 保留两位小数
         tp = round(cm[0][0],2)  # good-->good
@@ -78,7 +78,7 @@ def get_df():
     :return: 关键特征数据集，结果数据集
     """
     df, y, sub_columns = extract_key_feature_data()
-    x_train, x_test, y_train, y_test = train_test_split_data(df,y,train_size=0.90)
+    x_train, x_test, y_train, y_test = train_test_split_data(df,y,train_size=0.99)
     return x_train, y_train
 
 
@@ -92,18 +92,23 @@ def get_cm():
     _,svm_cm = svm_data(x,y)
     _,kn_cm = k_neighbor_data(x,y)
     _,g_cm = gausssian_data(x,y)
-    return g_cm,log_cm,kn_cm,svm_cm
+    dt_cm = test()
+    return g_cm,log_cm,kn_cm,svm_cm,dt_cm
 
 
 def main():
     """
     主函数
     """
-    g_cm,log_cm,kn_cm,svm_cm = get_cm()
-    compute_confusion_matrix(g_cm,'G', True)
-    compute_confusion_matrix(log_cm,'log', True)
-    compute_confusion_matrix(kn_cm,'kn', True)
-    compute_confusion_matrix(svm_cm,'svm', True)
+    g_cm,log_cm,kn_cm,svm_cm,dt_cm = get_cm()
+    print svm_cm
+    print dt_cm
+    print g_cm
+    compute_confusion_matrix(g_cm,'NV', False)
+    # compute_confusion_matrix(log_cm,'log', True)
+    # compute_confusion_matrix(kn_cm,'kn', True)
+    compute_confusion_matrix(svm_cm,'SVM', False)
+    compute_confusion_matrix(dt_cm,'dt', False)
 
 
 if __name__ == '__main__':

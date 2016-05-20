@@ -21,7 +21,7 @@ def fetch_data():
     :return: 返回基础数据
     """
     db = MySQL()
-    sql = 'SELECT url_length,path_tokens,path_brand,domain_tokens,malicious,domain_characters,path_characters FROM url_features'
+    sql = 'SELECT url_length,path_tokens,path_brand,domain_tokens,malicious,domain_characters,path_characters FROM url_features_copy_copy'
     db.query(sql)
     urls = db.fetch_all_rows()
     db.close()
@@ -145,7 +145,11 @@ def cal_decision_tree(x_train,y_train,x_test,y_test):
     clf = tree.DecisionTreeClassifier(criterion='entropy', max_depth=5,min_samples_leaf=7)
     # clf = tree.DecisionTreeClassifier(criterion='entropy')
     clf = clf.fit(x_train,y_train)
+    # print clf.
     return "{:.4f}".format(clf.score(x_test,y_test)), clf.feature_importances_,clf
+
+# def test(x_train,y_train):
+#     clf
 
 
 def logistic_data(X,y):
@@ -247,7 +251,7 @@ def measure_performance(X,y,clf, show_accuracy=True,
     if show_confusion_matrix:
         print "混淆矩阵报告："
         print metrics.confusion_matrix(y,y_pred),"\n"
-
+    return metrics.confusion_matrix(y,y_pred)
 
 def cross_validation_model(clf,df,y,cv=10):
     """
@@ -278,6 +282,14 @@ def draw_tree(clf,sub_columns):
     # Image(filename='titanic.png')
 
 
+def test():
+    df,y,sub_columns = extract_key_feature_data()
+    x_train,x_test,y_train,y_test = train_test_split_data(df,y,train_size=0.99)
+    print len(x_train)
+    accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
+    print "正确率：",accuracy
+    print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
+    return measure_performance(x_train,y_train,clf, show_classification_report=True, show_confusion_matrix=True)
 
 
 def main():
@@ -288,7 +300,7 @@ def main():
     accuracy,feature_importance,clf = cal_decision_tree(x_train,y_train,x_test,y_test)
     print "正确率：",accuracy
     print "各个特征重要性：\n",Series(feature_importance,index= sub_columns)
-    measure_performance(x_test,y_test,clf, show_classification_report=True, show_confusion_matrix=True)
+    measure_performance(x_train,y_train,clf, show_classification_report=True, show_confusion_matrix=True)
     # scores,scores_mean,scores_std = cross_validation_model(clf,df,y,cv=10)
     # print "验证结果分数列表", scores
     # print "平均值：", scores_mean
@@ -303,10 +315,10 @@ def main():
     # print clf2.feature_importances_
 
     # guiyih(df,y)
-    svm_data(df,y)
-    k_neighbor_data(df,y)
-    gausssian_data(df,y)
-    logistic_data(df,y)
+    # svm_data(df,y)
+    # k_neighbor_data(df,y)
+    # gausssian_data(df,y)
+    # logistic_data(df,y)
 
 if __name__ == '__main__':
     main()
